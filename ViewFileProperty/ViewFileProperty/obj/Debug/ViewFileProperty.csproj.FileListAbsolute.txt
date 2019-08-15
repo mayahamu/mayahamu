@@ -1,0 +1,15 @@
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\bin\Debug\ViewFileProperty.exe.config
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\bin\Debug\ViewFileProperty.exe
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\bin\Debug\ViewFileProperty.pdb
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty.csprojAssemblyReference.cache
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\MainWindow.g.cs
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\App.g.cs
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty_MarkupCompile.cache
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty_MarkupCompile.lref
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\MainWindow.baml
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty.g.resources
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty.Properties.Resources.resources
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty.csproj.GenerateResource.cache
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty.csproj.CoreCompileInputs.cache
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty.exe
+C:\Users\tanaka\OneDrive\Documents\Visual Studio 2019\Projects\mayahamu\ViewFileProperty\ViewFileProperty\obj\Debug\ViewFileProperty.pdb
