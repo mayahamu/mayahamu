@@ -5,15 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ID3compare2"
         mc:Ignorable="d"
-        Title="ID3compare2" Height="501.656" Width="439.404" Foreground="{DynamicResource {x:Static SystemColors.WindowFrameBrushKey}}">
-    <Grid Background="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
-        <Button x:Name="SelectFolderButton" Content="Folder..." HorizontalAlignment="Left" Margin="10,13,0,0" VerticalAlignment="Top" Width="75" Click="SelectFolderButton_Click"/>
-        <Label x:Name="FolderNameLabel" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="331">
-            <Label Content="Label"/>
+        Title="ID3compare2" Height="300" ResizeMode="NoResize" Width="400" ScrollViewer.VerticalScrollBarVisibility="Disabled" Background="#FFC8C8C8" Foreground="{x:Null}">
+    <Grid Margin="0" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <Button x:Name="SelectFolderButton" Content="選択" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="SelectFolderButton_Click" UseLayoutRounding="False" Width="75"/>
+        <Label x:Name="FolderNameLabel" HorizontalAlignment="Left" Margin="10,231,0,0" VerticalAlignment="Top" Width="374" Padding="0">
+            <Label Content="Label" Padding="0"/>
         </Label>
-        <TextBlock x:Name="ResultTextBlock" HorizontalAlignment="Left" Margin="10,75,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="386" Width="411" Foreground="Black" Background="White"/>
-        <Button x:Name="CompareButton" Content="Compare!" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" Width="75" Click="CompareButton_Click"/>
-        <ProgressBar x:Name="MainProgressBar" HorizontalAlignment="Left" Height="20" Margin="90,38,0,0" VerticalAlignment="Top" Width="331"/>
+        <Button x:Name="CompareButton" Content="開始" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="75" Click="CompareButton_Click"/>
+        <ProgressBar x:Name="MainProgressBar" HorizontalAlignment="Left" Margin="170,10,0,0" Width="204" Height="20" VerticalAlignment="Top" Padding="0"/>
+        <TextBox x:Name="ResultTextBox" Height="191" Margin="10,35,10,0" Text="TextBox" VerticalAlignment="Top" UseLayoutRounding="False" Padding="5" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Left" Width="364" AllowDrop="True" Drop="ResultTextBox_Drop" IsUndoEnabled="False" IsReadOnly="True" PreviewDragOver="ResultTextBox_PreviewDragOver"/>
 
     </Grid>
 </Window>

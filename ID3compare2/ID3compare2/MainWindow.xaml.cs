@@ -25,39 +25,111 @@ namespace ID3compare2
     {
 
         string sPath;
-        string processFile;
+        string[] errorFilesList;
         int sfCount;
         int i;
+        TagLib.File oneMP3File;
 
-        private BackgroundWorker bw = new BackgroundWorker();
+        private BackgroundWorker BW;
 
         public MainWindow()
         {
             InitializeComponent();
-            FolderNameLabel.Content = "フォルダを選択してください";
+            FolderNameLabel.Content = "フォルダを選択するかドラッグ&ドロップしてください。";
+            CompareButton.Content = "開始";
             CompareButton.IsEnabled = false;
-            ResultTextBlock.Text = "";
+            ResultTextBox.Text = "";
+            MainProgressBar.Visibility = Visibility.Hidden;
+
         }
 
-       
+        private void ResultTextBox_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            string[] dragFilePathArr = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            for (int i = 0; i < dragFilePathArr.Length; i++)
+            {
+                if (Directory.Exists(dragFilePathArr[i]))
+                {
+                    sPath = dragFilePathArr[0];
+                    sfCount = Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly).Length;
+
+                    FolderNameLabel.Content = "Path : " + sPath + " / MP3 : " + sfCount + "files";
+
+                    // 初期化
+                    ResultTextBox.Clear();
+                    errorFilesList = new string[1];
+                    BW = new BackgroundWorker();
+
+                    /* 実行ボタンの名前を変更 */
+                    CompareButton.Content = "中止";
+                    CompareButton.IsEnabled = true;
+
+                    /* プログレスバーを設定 */
+                    MainProgressBar.Maximum = sfCount;
+                    MainProgressBar.Visibility = Visibility.Visible;
+
+                    /* BackgroundWorkerのProgressChangedイベントが発生するようにする */
+                    BW.WorkerReportsProgress = true;
+
+                    // 途中で中止できるようにする
+                    BW.WorkerSupportsCancellation = true;
+
+                    // イベントハンドラを追加
+                    BW.DoWork += new DoWorkEventHandler(DoWork);
+                    BW.ProgressChanged += new ProgressChangedEventHandler(BW_ProgressChanged);
+                    BW.RunWorkerCompleted += new RunWorkerCompletedEventHandler(BW_RunWorkerCompleted);
+
+                    /* DoWorkで取得できるパラメータを指定して、処理を開始する
+                       パラメータが必要なければ省略できる */
+                    BW.RunWorkerAsync();
+                }
+            }
+        }
+
+
+
+        private void ResultTextBox_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            var fileList = ((DataObject)e.Data).GetFileDropList();
+
+            if (fileList.Count > 0)
+            {
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
+            }
+        }
+
+
+
         private void SelectFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new CommonOpenFileDialog("フォルダ選択");
+#pragma warning disable IDE0068 // 推奨される dispose パターンを使用する
+            var dialog = new CommonOpenFileDialog("フォルダ選択")
+            {
 
-            // フォルダ選択モード
-            dialog.IsFolderPicker = true;
-            dialog.Multiselect = false;
+                // フォルダ選択モード
+                IsFolderPicker = true,
+                Multiselect = false
+            };
+#pragma warning restore IDE0068 // 推奨される dispose パターンを使用する
 
             //フォルダを選択するダイアログを表示する
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 sPath = dialog.FileName;
-
-                sfCount = System.IO.Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly).Length;
+                sfCount = Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly).Length;
 
                 FolderNameLabel.Content = "Path : " + sPath + " / MP3 : " + sfCount + "files";
                 CompareButton.IsEnabled = true;
-                ResultTextBlock.Text = "ここに照合結果が表示されます";
+                ResultTextBox.Text = "ここに結果が表示されます";
 
             }
             else
@@ -69,33 +141,40 @@ namespace ID3compare2
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
-            if (bw.IsBusy != true)
+            BW = new BackgroundWorker();
+
+            if (BW.IsBusy != true)
             {
+                // 初期化
+                ResultTextBox.Clear();
+                errorFilesList = new string[1];
+
                 /* 実行ボタンの名前を変更 */
-                CompareButton.Content = "Abort";
+                CompareButton.Content = "中止";
   
-                /* プログレスバーの最大値を設定 */
+                /* プログレスバーを設定 */
                 MainProgressBar.Maximum = sfCount;
+                MainProgressBar.Visibility = Visibility.Visible;
 
                 /* BackgroundWorkerのProgressChangedイベントが発生するようにする */
-                bw.WorkerReportsProgress = true;
+                BW.WorkerReportsProgress = true;
 
                 // 途中で中止できるようにする
-                bw.WorkerSupportsCancellation = true;
+                BW.WorkerSupportsCancellation = true;
 
                 // イベントハンドラを追加
-                bw.DoWork += new DoWorkEventHandler(DoWork);
-                bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
-                bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+                BW.DoWork += new DoWorkEventHandler(DoWork);
+                BW.ProgressChanged += new ProgressChangedEventHandler(BW_ProgressChanged);
+                BW.RunWorkerCompleted += new RunWorkerCompletedEventHandler(BW_RunWorkerCompleted);
 
                 /* DoWorkで取得できるパラメータを指定して、処理を開始する
                    パラメータが必要なければ省略できる */
-                bw.RunWorkerAsync(sfCount);
+                BW.RunWorkerAsync();
             }
             else
             {
                 /* キャンセルする */
-                bw.CancelAsync();
+                BW.CancelAsync();
             }
 
         }
@@ -104,100 +183,115 @@ namespace ID3compare2
         // 別スレッドで回す重たい処理（つまりはメインのループ）
         private void DoWork(object sender, DoWorkEventArgs e)
         {
-            BackgroundWorker worker = sender as BackgroundWorker;
             i = 0;
-
-             // 比較元フォルダのファイル名を配列に入れる
+            string oneMP3FileComposers;
+            
+            // 比較元フォルダのファイル名を配列に入れる
             string[] filenameArray = Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly);
 
             // その配列をforeachに投げ込んで処理
             foreach (string filename in filenameArray)
             {
                 // キャンセルされたかどうかチェック
-                if (worker.CancellationPending == true)
+                if (BW.CancellationPending == true)
                 {
                     e.Cancel = true;
                     break;
                 }
                 else
                 {
-                    // パスを除いたファイル名と、ID3タグの作曲者（ここにオリジナルのmp2ファイル名を入れている）を取得
+                    // パスを除いたファイル名と、ID3タグの作曲者を取得
                     // 【20190819】taglibを利用して、作曲者名を数字じゃなく要素として取得してみよう計画！
-                    string oneFileName = Path.GetFileName(filename);
-                    FolderItem item = f.ParseName(oneFileName);
-                    string id3number = f.GetDetailsOf(item, fpValue);
-                    processFile = oneFileName + Environment.NewLine;
+                    string oneFileName = System.IO.Path.GetFileName(filename);
+                    oneMP3File = TagLib.File.Create(filename);
 
-                    // 両者のファイル名部分を比較して、違っていたら
-                    if (Path.GetFileNameWithoutExtension(filename) != Path.GetFileNameWithoutExtension(id3number))
+                    /* デバッグ用
+                    if (oneMP3File.Tag.Composers.Length > 0)
                     {
-                        // テキストボックスに表示するため、直接コントロールをいじらないでListに入れておく
-                        resultStrList.Add(oneFileName + " (Tag : " + id3number + ")" + Environment.NewLine);
+                        Console.WriteLine(oneMP3File.Tag.Composers.Length);
+                    }
+                    */
+
+                    try
+                    {
+                        oneMP3FileComposers = oneMP3File.Tag.Composers[0];
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        oneMP3FileComposers = "なし";
+                    }
+                    
+                    // ファイル名（拡張子をmp2にして合わせたもの）と作曲者名部分を比較
+                    if (oneFileName.Replace("mp3","mp2") != oneMP3FileComposers)
+                    {
+                        // 見つかったファイルを配列に入れておく
+                        if (errorFilesList.Length > 1)
+                        {
+                            errorFilesList[errorFilesList.Length -1] = oneFileName + "（タグ：" + oneMP3FileComposers + "）";
+                            Array.Resize(ref errorFilesList, errorFilesList.Length + 1);
+                        }
+                        else
+                        {
+                            errorFilesList[0] = oneFileName + "（タグ：" + oneMP3FileComposers + "）";
+                            Array.Resize(ref errorFilesList, errorFilesList.Length + 1);
+                        }
+                        //Console.WriteLine("ファイル名: " + oneFileName);
                     }
 
                     i++;
                     // BackgroundWorkerに現状を送る
-                    worker.ReportProgress(i);
+                    BW.ReportProgress(i);
                 }
             }
-
-            filenameArray.Initialize();
         }
 
 
-        // BackgroundWorker1のProgressChangedイベントハンドラ
+        // BackgroundWorkerのProgressChangedイベントハンドラ
         // コントロールの操作は必ずここで行い、DoWorkでは絶対にしない
-        private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void BW_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            // ProgressBar1の値を変更する
+            // ProgressBarの値を変更する
             MainProgressBar.Value = e.ProgressPercentage;
-            ResultTextBlock.AppendText(processFile);
-            //label2.Text = (e.ProgressPercentage.ToString() + "%");
         }
-
-
-        // BackgroundWorker1のRunWorkerCompletedイベントハンドラ
+        
+        // BackgroundWorkerのRunWorkerCompletedイベントハンドラ
         // 処理が終わったときに呼び出される
-        private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void BW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if ((e.Cancelled == true))
             {
-                textBox1.AppendText("キャンセルされました");
+                ResultTextBox.Text = "キャンセルされました。";
             }
-
             else if (!(e.Error == null))
             {
-                textBox1.AppendText("エラー:" + e.Error.Message);
+                ResultTextBox.Text = "エラー：" + e.Error.Message;
             }
-
             else
             {
-                textBox1.AppendText("完了しました" + Environment.NewLine);
-
-                if (resultStrList.Count > 0) // ID3Tagが違うファイルがあったら
+                ResultTextBox.Text = "完了しました。" + Environment.NewLine;
+                
+                if (errorFilesList.Length > 1) // ID3Tagがおかしいファイルがあったら
                 {
-                    textBox1.AppendText("以下のファイルのID3タグが、拡張子を除くファイル名と違います" + Environment.NewLine);
-                    foreach (var item in resultStrList)
+                    ResultTextBox.AppendText("以下のファイルのID3タグが正しく書き込めていないようです。");
+
+                    foreach(string eft in errorFilesList)
                     {
-                        textBox1.AppendText(item);
+                        ResultTextBox.AppendText(Environment.NewLine + eft);
                     }
                 }
                 else
                 {
-                    textBox1.AppendText("問題はありません" + Environment.NewLine);
+                    ResultTextBox.Text += "全ファイルのID3タグが正しく書き込まれています。";
                 }
             }
 
             // 各種初期化
-            progressBar1.Visible = false;
-            button2.Text = "実行";
-            numericUpDown1.Enabled = true;
+            errorFilesList.Initialize();
+            MainProgressBar.Visibility = Visibility.Hidden;
+            CompareButton.Content = "開始";
+            CompareButton.IsEnabled = false;
+            BW.Dispose();
         }
+
     }
-
-
-
-
-
-}
 }
