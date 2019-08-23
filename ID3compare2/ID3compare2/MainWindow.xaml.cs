@@ -36,8 +36,6 @@ namespace ID3compare2
         {
             InitializeComponent();
             FolderNameLabel.Content = "フォルダを選択するかドラッグ&ドロップしてください。";
-            CompareButton.Content = "開始";
-            CompareButton.IsEnabled = false;
             ResultTextBox.Text = "";
             MainProgressBar.Visibility = Visibility.Hidden;
 
@@ -49,9 +47,9 @@ namespace ID3compare2
 
             string[] dragFilePathArr = (string[])e.Data.GetData(DataFormats.FileDrop);
 
-            for (int i = 0; i < dragFilePathArr.Length; i++)
+            foreach (string f in dragFilePathArr)
             {
-                if (Directory.Exists(dragFilePathArr[i]))
+                if (Directory.Exists(f))
                 {
                     sPath = dragFilePathArr[0];
                     sfCount = Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly).Length;
@@ -63,9 +61,8 @@ namespace ID3compare2
                     errorFilesList = new string[1];
                     BW = new BackgroundWorker();
 
-                    /* 実行ボタンの名前を変更 */
-                    CompareButton.Content = "中止";
-                    CompareButton.IsEnabled = true;
+                    /* ボタンの名前を変更 */
+                    SelectFolderButton.Content = "中止";
 
                     /* プログレスバーを設定 */
                     MainProgressBar.Maximum = sfCount;
@@ -90,7 +87,6 @@ namespace ID3compare2
         }
 
 
-
         private void ResultTextBox_PreviewDragOver(object sender, DragEventArgs e)
         {
             var fileList = ((DataObject)e.Data).GetFileDropList();
@@ -111,73 +107,67 @@ namespace ID3compare2
 
         private void SelectFolderButton_Click(object sender, RoutedEventArgs e)
         {
-#pragma warning disable IDE0068 // 推奨される dispose パターンを使用する
-            var dialog = new CommonOpenFileDialog("フォルダ選択")
-            {
-
-                // フォルダ選択モード
-                IsFolderPicker = true,
-                Multiselect = false
-            };
-#pragma warning restore IDE0068 // 推奨される dispose パターンを使用する
-
-            //フォルダを選択するダイアログを表示する
-            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                sPath = dialog.FileName;
-                sfCount = Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly).Length;
-
-                FolderNameLabel.Content = "Path : " + sPath + " / MP3 : " + sfCount + "files";
-                CompareButton.IsEnabled = true;
-                ResultTextBox.Text = "ここに結果が表示されます";
-
-            }
-            else
-            {
-                Console.WriteLine("キャンセルされました");
-            }
-                        
-        }
-
-        private void CompareButton_Click(object sender, RoutedEventArgs e)
-        {
             BW = new BackgroundWorker();
 
-            if (BW.IsBusy != true)
+            // ボタンの名前で判断
+            if (SelectFolderButton.Content is "選択")
             {
-                // 初期化
-                ResultTextBox.Clear();
-                errorFilesList = new string[1];
+#pragma warning disable IDE0068 // 推奨される dispose パターンを使用する
+                var dialog = new CommonOpenFileDialog("フォルダ選択")
+                {
 
-                /* 実行ボタンの名前を変更 */
-                CompareButton.Content = "中止";
-  
-                /* プログレスバーを設定 */
-                MainProgressBar.Maximum = sfCount;
-                MainProgressBar.Visibility = Visibility.Visible;
+                    // フォルダ選択モード
+                    IsFolderPicker = true,
+                    Multiselect = false
+                };
+#pragma warning restore IDE0068 // 推奨される dispose パターンを使用する
 
-                /* BackgroundWorkerのProgressChangedイベントが発生するようにする */
-                BW.WorkerReportsProgress = true;
+                //フォルダを選択するダイアログを表示する
+                if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    sPath = dialog.FileName;
+                    sfCount = Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly).Length;
 
-                // 途中で中止できるようにする
-                BW.WorkerSupportsCancellation = true;
+                    FolderNameLabel.Content = "Path : " + sPath + " / MP3 : " + sfCount + "files";
 
-                // イベントハンドラを追加
-                BW.DoWork += new DoWorkEventHandler(DoWork);
-                BW.ProgressChanged += new ProgressChangedEventHandler(BW_ProgressChanged);
-                BW.RunWorkerCompleted += new RunWorkerCompletedEventHandler(BW_RunWorkerCompleted);
+                    // 初期化
+                    ResultTextBox.Clear();
+                    errorFilesList = new string[1];
 
-                /* DoWorkで取得できるパラメータを指定して、処理を開始する
-                   パラメータが必要なければ省略できる */
-                BW.RunWorkerAsync();
+                    /* ボタンの名前を変更 */
+                    SelectFolderButton.Content = "中止";
+
+                    /* プログレスバーを設定 */
+                    MainProgressBar.Maximum = sfCount;
+                    MainProgressBar.Visibility = Visibility.Visible;
+
+                    /* BackgroundWorkerのProgressChangedイベントが発生するようにする */
+                    BW.WorkerReportsProgress = true;
+
+                    // 途中で中止できるようにする
+                    BW.WorkerSupportsCancellation = true;
+
+                    // イベントハンドラを追加
+                    BW.DoWork += new DoWorkEventHandler(DoWork);
+                    BW.ProgressChanged += new ProgressChangedEventHandler(BW_ProgressChanged);
+                    BW.RunWorkerCompleted += new RunWorkerCompletedEventHandler(BW_RunWorkerCompleted);
+
+                    /* DoWorkで取得できるパラメータを指定して、処理を開始する
+                       パラメータが必要なければ省略できる */
+                    BW.RunWorkerAsync();
+                }
+                else
+                {
+                    Console.WriteLine("キャンセルされました");
+                }
             }
             else
             {
                 /* キャンセルする */
                 BW.CancelAsync();
             }
-
         }
+
 
 
         // 別スレッドで回す重たい処理（つまりはメインのループ）
@@ -185,7 +175,7 @@ namespace ID3compare2
         {
             i = 0;
             string oneMP3FileComposers;
-            
+  
             // 比較元フォルダのファイル名を配列に入れる
             string[] filenameArray = Directory.GetFiles(sPath, "*.mp3", SearchOption.TopDirectoryOnly);
 
@@ -288,8 +278,7 @@ namespace ID3compare2
             // 各種初期化
             errorFilesList.Initialize();
             MainProgressBar.Visibility = Visibility.Hidden;
-            CompareButton.Content = "開始";
-            CompareButton.IsEnabled = false;
+            SelectFolderButton.Content = "選択";
             BW.Dispose();
         }
 
